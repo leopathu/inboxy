@@ -57,6 +57,10 @@ Route::middleware('auth')->group(function () {
         
         // Subscriber Management (nested under lists)
         Route::prefix('lists/{list}')->name('lists.')->group(function () {
+            // Import Management
+            Route::get('/imports', [\App\Http\Controllers\ImportController::class, 'index'])->name('imports.index');
+            Route::get('/imports/{import}', [\App\Http\Controllers\ImportController::class, 'show'])->name('imports.show');
+            
             // API endpoint for import status polling
             Route::get('/imports/status', [\App\Http\Controllers\Api\ImportStatusController::class, 'index'])
                 ->name('imports.status');

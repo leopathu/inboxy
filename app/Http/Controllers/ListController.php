@@ -88,7 +88,8 @@ class ListController extends Controller
 
         abort_if($list->brand_id !== $brand->id, 404);
 
-        $list->loadCount(['subscribers', 'activeSubscribers']);
+        // Refresh the model to get latest counts from database
+        $list->refresh();
         $list->load(['customFields' => fn($query) => $query->active()->ordered()]);
 
         $subscribers = $list->subscribers()
