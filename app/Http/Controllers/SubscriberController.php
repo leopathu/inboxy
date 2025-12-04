@@ -199,6 +199,28 @@ class SubscriberController extends Controller
     }
 
     /**
+     * Bulk delete subscribers.
+     */
+    public function bulkDelete(Request $request, Brand $brand, EmailList $list): RedirectResponse
+    {
+        $this->authorize('update', $brand);
+        abort_if($list->brand_id !== $brand->id, 404);
+
+        $request->validate([
+            'subscriber_ids' => ['required', 'array', 'min:1'],
+            'subscriber_ids.*' => ['required', 'integer', 'exists:subscribers,id'],
+        ]);
+
+        $count = Subscriber::where('list_id', $list->id)
+            ->whereIn('id', $request->subscriber_ids)
+            ->delete();
+
+        $list->updateSubscriberCounts();
+
+        return back()->with('success', "{$count} subscriber(s) deleted successfully.");
+    }
+
+    /**
      * Show the CSV import form.
      */
     public function import(Brand $brand, EmailList $list): Response
@@ -231,68 +253,24 @@ class SubscriberController extends Controller
         $file = $request->file('file');
         $hasHeader = $request->boolean('has_header', true);
 
-        $handle = fopen($file->getRealPath(), 'r');
-        $imported = 0;
-        $skipped = 0;
-        $errors = [];
+        // Store the file
+        $path = $file->store('imports', 'local');
 
-        // Skip header row if specified
-        if ($hasHeader) {
-            fgetcsv($handle);
-        }
+        // Create import record
+        $import = \App\Models\SubscriberImport::create([
+            'list_id' => $list->id,
+            'user_id' => $request->user()->id,
+            'filename' => $file->getClientOriginalName(),
+            'file_path' => $path,
+            'status' => \App\Models\SubscriberImport::STATUS_PENDING,
+        ]);
 
-        while (($row = fgetcsv($handle)) !== false) {
-            if (empty($row[0])) {
-                continue;
-            }
-
-            $email = trim($row[0]);
-            
-            // Validate email
-            $validator = Validator::make(['email' => $email], [
-                'email' => ['required', 'email'],
-            ]);
-
-            if ($validator->fails()) {
-                $skipped++;
-                $errors[] = "Invalid email: {$email}";
-                continue;
-            }
-
-            // Check if already exists
-            $exists = Subscriber::where('list_id', $list->id)
-                ->where('email', $email)
-                ->exists();
-
-            if ($exists) {
-                $skipped++;
-                continue;
-            }
-
-            // Create subscriber
-            Subscriber::create([
-                'list_id' => $list->id,
-                'email' => $email,
-                'first_name' => $row[1] ?? null,
-                'last_name' => $row[2] ?? null,
-                'custom_fields' => [],
-                'status' => Subscriber::STATUS_SUBSCRIBED,
-                'subscribed_at' => now(),
-                'ip_address' => $request->ip(),
-            ]);
-
-            $imported++;
-        }
-
-        fclose($handle);
-
-        $list->updateSubscriberCounts();
-
-        $message = "Import complete: {$imported} imported, {$skipped} skipped.";
+        // Dispatch job to process the import
+        \App\Jobs\ProcessSubscriberImport::dispatch($import, $hasHeader);
 
         return redirect()
             ->route('brands.lists.show', [$brand, $list])
-            ->with('success', $message);
+            ->with('success', 'Import started! You will see progress updates below.');
     }
 
     /**

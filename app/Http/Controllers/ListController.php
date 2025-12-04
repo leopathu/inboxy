@@ -8,6 +8,7 @@ use App\Http\Requests\StoreListRequest;
 use App\Http\Requests\UpdateListRequest;
 use App\Models\Brand;
 use App\Models\EmailList;
+use App\Models\SubscriberImport;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -94,10 +95,18 @@ class ListController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(50);
 
+        // Get recent imports (last 24 hours)
+        $recentImports = SubscriberImport::where('list_id', $list->id)
+            ->where('created_at', '>=', now()->subDay())
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
         return Inertia::render('Lists/Show', [
             'brand' => $brand,
             'list' => $list,
             'subscribers' => $subscribers,
+            'recentImports' => $recentImports,
         ]);
     }
 

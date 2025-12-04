@@ -57,10 +57,18 @@ Route::middleware('auth')->group(function () {
         
         // Subscriber Management (nested under lists)
         Route::prefix('lists/{list}')->name('lists.')->group(function () {
-            Route::resource('subscribers', SubscriberController::class);
+            // API endpoint for import status polling
+            Route::get('/imports/status', [\App\Http\Controllers\Api\ImportStatusController::class, 'index'])
+                ->name('imports.status');
+            
+            // Define specific routes BEFORE resource routes to avoid conflicts
             Route::get('/subscribers/import', [SubscriberController::class, 'import'])->name('subscribers.import');
             Route::post('/subscribers/import', [SubscriberController::class, 'processImport'])->name('subscribers.process-import');
             Route::get('/subscribers/export', [SubscriberController::class, 'export'])->name('subscribers.export');
+            Route::post('/subscribers/bulk-delete', [SubscriberController::class, 'bulkDelete'])->name('subscribers.bulk-delete');
+            
+            // Resource routes
+            Route::resource('subscribers', SubscriberController::class);
             
             // Custom Fields Management
             Route::resource('custom-fields', CustomFieldController::class);
@@ -68,5 +76,10 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
+
+// Public subscription management routes (no auth required)
+Route::get('/confirm/{token}', [App\Http\Controllers\SubscriptionController::class, 'confirm'])->name('subscription.confirm');
+Route::get('/unsubscribe/{token}', [App\Http\Controllers\SubscriptionController::class, 'showUnsubscribe'])->name('subscription.unsubscribe');
+Route::post('/unsubscribe/{token}', [App\Http\Controllers\SubscriptionController::class, 'unsubscribe'])->name('subscription.do-unsubscribe');
 
 require __DIR__.'/auth.php';

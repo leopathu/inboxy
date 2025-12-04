@@ -35,12 +35,16 @@ class Subscriber extends Model
         'ip_address',
         'country',
         'referrer',
+        'confirmation_token',
+        'unsubscribe_token',
         'confirmed_at',
         'subscribed_at',
         'unsubscribed_at',
         'bounced_at',
+        'complained_at',
         'bounce_count',
         'bounce_type',
+        'bounce_reason',
     ];
 
     /**
@@ -219,5 +223,83 @@ class Subscriber extends Model
     public function scopeBounced($query)
     {
         return $query->where('status', self::STATUS_BOUNCED);
+    }
+
+    /**
+     * Generate a unique confirmation token.
+     */
+    public function generateConfirmationToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->update(['confirmation_token' => $token]);
+        return $token;
+    }
+
+    /**
+     * Generate a unique unsubscribe token.
+     */
+    public function generateUnsubscribeToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->update(['unsubscribe_token' => $token]);
+        return $token;
+    }
+
+    /**
+     * Find subscriber by confirmation token.
+     */
+    public static function findByConfirmationToken(string $token): ?self
+    {
+        return self::where('confirmation_token', $token)->first();
+    }
+
+    /**
+     * Find subscriber by unsubscribe token.
+     */
+    public static function findByUnsubscribeToken(string $token): ?self
+    {
+        return self::where('unsubscribe_token', $token)->first();
+    }
+
+    /**
+     * Get confirmation URL.
+     */
+    public function getConfirmationUrl(): string
+    {
+        if (!$this->confirmation_token) {
+            $this->generateConfirmationToken();
+        }
+        
+        return route('subscription.confirm', ['token' => $this->confirmation_token]);
+    }
+
+    /**
+     * Get unsubscribe URL.
+     */
+    public function getUnsubscribeUrl(): string
+    {
+        if (!$this->unsubscribe_token) {
+            $this->generateUnsubscribeToken();
+        }
+        
+        return route('subscription.unsubscribe', ['token' => $this->unsubscribe_token]);
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Generate tokens when creating a new subscriber
+        static::creating(function ($subscriber) {
+            if (!$subscriber->confirmation_token) {
+                $subscriber->confirmation_token = bin2hex(random_bytes(32));
+            }
+            if (!$subscriber->unsubscribe_token) {
+                $subscriber->unsubscribe_token = bin2hex(random_bytes(32));
+            }
+        });
     }
 }

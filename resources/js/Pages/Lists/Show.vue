@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, onMounted, onUnmounted } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import type { Brand } from '@/types';
 
@@ -28,6 +29,20 @@ interface PaginatedSubscribers {
     total: number;
 }
 
+interface SubscriberImport {
+    id: number;
+    filename: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    total_rows: number;
+    processed_rows: number;
+    imported_count: number;
+    skipped_count: number;
+    error_count: number;
+    progress_percentage: number;
+    created_at: string;
+    completed_at: string | null;
+}
+
 interface EmailList {
     id: number;
     name: string;
@@ -48,11 +63,14 @@ interface Props {
     brand: Brand;
     list: EmailList;
     subscribers: PaginatedSubscribers;
+    recentImports?: SubscriberImport[];
 }
 
 const props = defineProps<Props>();
 
 const { brand, list, subscribers } = props;
+const imports = ref<SubscriberImport[]>(props.recentImports || []);
+let pollInterval: number | null = null;
 
 const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -76,11 +94,81 @@ const getStatusLabel = (status: string) => {
     return labels[status] || status;
 };
 
+const getImportStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+        pending: 'bg-yellow-100 text-yellow-800',
+        processing: 'bg-blue-100 text-blue-800',
+        completed: 'bg-green-100 text-green-800',
+        failed: 'bg-red-100 text-red-800',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+const getImportStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+        pending: 'Pending',
+        processing: 'Processing',
+        completed: 'Completed',
+        failed: 'Failed',
+    };
+    return labels[status] || status;
+};
+
+const hasActiveImports = () => {
+    return imports.value.some(imp => imp.status === 'pending' || imp.status === 'processing');
+};
+
+const pollImportStatus = async () => {
+    try {
+        const response = await fetch(route('brands.lists.imports.status', [brand.id, list.id]), {
+            headers: {
+                'Accept': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            imports.value = data.imports;
+            
+            // Update list subscriber counts
+            list.subscriber_count = data.subscriber_count;
+            list.active_subscriber_count = data.active_subscriber_count;
+            
+            // Stop polling if no active imports
+            if (!hasActiveImports() && pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+                
+                // Reload the page to show updated subscriber list
+                router.reload({ only: ['subscribers'] });
+            }
+        }
+    } catch (error) {
+        console.error('Error polling import status:', error);
+    }
+};
+
+const startPolling = () => {
+    if (hasActiveImports() && !pollInterval) {
+        pollInterval = window.setInterval(pollImportStatus, 3000); // Poll every 3 seconds
+    }
+};
+
 const deleteList = () => {
     if (confirm(`Are you sure you want to delete "${list.name}"? This will also delete all subscribers in this list.`)) {
         router.delete(route('brands.lists.destroy', [brand.id, list.id]));
     }
 };
+
+onMounted(() => {
+    startPolling();
+});
+
+onUnmounted(() => {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+    }
+});
 </script>
 
 <template>
@@ -178,6 +266,107 @@ const deleteList = () => {
                     </div>
                 </div>
 
+                <!-- Import Progress -->
+                <div v-if="imports.length > 0" class="mb-6 space-y-4">
+                    <div
+                        v-for="importItem in imports"
+                        :key="importItem.id"
+                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
+                    >
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-900">
+                                        Importing: {{ importItem.filename }}
+                                    </h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        Started {{ new Date(importItem.created_at).toLocaleString() }}
+                                    </p>
+                                </div>
+                                <span
+                                    :class="[
+                                        'px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full',
+                                        getImportStatusColor(importItem.status)
+                                    ]"
+                                >
+                                    {{ getImportStatusLabel(importItem.status) }}
+                                </span>
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div v-if="importItem.status === 'processing' || importItem.status === 'pending'" class="mb-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-600">Progress</span>
+                                    <span class="text-sm font-medium text-gray-900">
+                                        {{ (importItem.progress_percentage || 0).toFixed(1) }}%
+                                    </span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                        :style="{ width: `${importItem.progress_percentage || 0}%` }"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <!-- Stats Grid -->
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-gray-900">
+                                        {{ importItem.total_rows.toLocaleString() }}
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-1">Total Rows</div>
+                                </div>
+                                <div class="text-center p-3 bg-blue-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-blue-900">
+                                        {{ importItem.processed_rows.toLocaleString() }}
+                                    </div>
+                                    <div class="text-xs text-blue-600 mt-1">Processed</div>
+                                </div>
+                                <div class="text-center p-3 bg-green-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-green-900">
+                                        {{ importItem.imported_count.toLocaleString() }}
+                                    </div>
+                                    <div class="text-xs text-green-600 mt-1">Imported</div>
+                                </div>
+                                <div class="text-center p-3 bg-yellow-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-yellow-900">
+                                        {{ importItem.skipped_count.toLocaleString() }}
+                                    </div>
+                                    <div class="text-xs text-yellow-600 mt-1">Skipped</div>
+                                </div>
+                                <div class="text-center p-3 bg-red-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-red-900">
+                                        {{ importItem.error_count.toLocaleString() }}
+                                    </div>
+                                    <div class="text-xs text-red-600 mt-1">Errors</div>
+                                </div>
+                            </div>
+
+                            <!-- Completion Message -->
+                            <div v-if="importItem.status === 'completed'" class="mt-4 p-3 bg-green-50 rounded-lg">
+                                <p class="text-sm text-green-800">
+                                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Import completed successfully!
+                                    Completed at {{ new Date(importItem.completed_at!).toLocaleString() }}
+                                </p>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div v-if="importItem.status === 'failed'" class="mt-4 p-3 bg-red-50 rounded-lg">
+                                <p class="text-sm text-red-800">
+                                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                    Import failed. Please check your CSV file and try again.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Subscribers Table -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
@@ -190,16 +379,18 @@ const deleteList = () => {
                                 >
                                     Back to Lists
                                 </Link>
-                                <button
+                                <Link
+                                    :href="route('brands.lists.subscribers.create', [brand.id, list.id])"
                                     class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                                 >
                                     Add Subscriber
-                                </button>
-                                <button
+                                </Link>
+                                <Link
+                                    :href="route('brands.lists.subscribers.import', [brand.id, list.id])"
                                     class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700"
                                 >
                                     Import CSV
-                                </button>
+                                </Link>
                             </div>
                         </div>
 
@@ -309,16 +500,18 @@ const deleteList = () => {
                                 Get started by adding subscribers or importing from CSV.
                             </p>
                             <div class="mt-6 flex justify-center gap-3">
-                                <button
+                                <Link
+                                    :href="route('brands.lists.subscribers.create', [brand.id, list.id])"
                                     class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                                 >
                                     Add Subscriber
-                                </button>
-                                <button
+                                </Link>
+                                <Link
+                                    :href="route('brands.lists.subscribers.import', [brand.id, list.id])"
                                     class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700"
                                 >
                                     Import CSV
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
