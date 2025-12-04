@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import BrandSwitcher from '@/Components/BrandSwitcher.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
+const page = usePage();
+const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
+const currentBrandId = computed(() => page.props.auth?.user?.current_brand_id);
 </script>
 
 <template>
@@ -39,10 +43,26 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    v-if="currentBrandId"
+                                    :href="route('brands.lists.index', currentBrandId)"
+                                    :active="route().current('brands.lists.*')"
+                                >
+                                    Lists
+                                </NavLink>
+                                <NavLink
+                                    v-if="isAdmin"
+                                    :href="route('brands.index')"
+                                    :active="route().current('brands.*') && !route().current('brands.lists.*')"
+                                >
+                                    Brands
+                                </NavLink>
                             </div>
                         </div>
 
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div class="hidden sm:ms-6 sm:flex sm:items-center sm:space-x-4">
+                            <!-- Brand Switcher -->
+                            <BrandSwitcher />
                             <!-- Settings Dropdown -->
                             <div class="relative ms-3">
                                 <Dropdown align="right" width="48">
@@ -145,6 +165,20 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('dashboard')"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="currentBrandId"
+                            :href="route('brands.lists.index', currentBrandId)"
+                            :active="route().current('brands.lists.*')"
+                        >
+                            Lists
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="isAdmin"
+                            :href="route('brands.index')"
+                            :active="route().current('brands.*') && !route().current('brands.lists.*')"
+                        >
+                            Brands
                         </ResponsiveNavLink>
                     </div>
 

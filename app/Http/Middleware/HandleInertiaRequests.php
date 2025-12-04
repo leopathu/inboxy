@@ -34,6 +34,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'brands' => $request->user() 
+                ? $request->user()->brands()->select('brands.id', 'brands.name', 'brands.company')->get() 
+                : [],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'api_key_secret' => $request->session()->get('api_key_secret'),
+            ],
         ];
     }
 }

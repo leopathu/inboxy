@@ -13,9 +13,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lists', function (Blueprint $table) {
+        Schema::create('email_lists', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('brand_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('from_name');
@@ -31,9 +31,12 @@ return new class extends Migration
             $table->text('welcome_email_body')->nullable();
             $table->integer('subscriber_count')->default(0);
             $table->integer('active_subscriber_count')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
             
-            $table->index('user_id');
+            $table->index('brand_id');
+            $table->index(['brand_id', 'is_active']);
         });
     }
 
@@ -42,6 +45,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lists');
+        Schema::dropIfExists('email_lists');
     }
 };

@@ -1,0 +1,110 @@
+<script setup lang="ts">
+import { Head, useForm } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import type { Brand } from '@/types';
+
+interface EmailList {
+    id: number;
+    name: string;
+    description: string | null;
+    from_name: string;
+    from_email: string;
+    reply_to_email: string | null;
+    subscribe_success_message: string | null;
+    unsubscribe_success_message: string | null;
+    require_confirmation: boolean;
+    confirmation_email_subject: string | null;
+    confirmation_email_body: string | null;
+    send_welcome_email: boolean;
+    welcome_email_subject: string | null;
+    welcome_email_body: string | null;
+    is_active: boolean;
+}
+
+interface Props {
+    brand: Brand;
+    list: EmailList;
+}
+
+const props = defineProps<Props>();
+
+const { brand, list } = props;
+
+const form = useForm({
+    name: props.list.name,
+    description: props.list.description || '',
+});
+
+const submit = () => {
+    form.put(route('brands.lists.update', [props.brand.id, props.list.id]), {
+        preserveScroll: true,
+    });
+};
+</script>
+
+<template>
+    <Head :title="`Edit ${list.name} - ${brand.name}`" />
+
+    <AuthenticatedLayout>
+        <div class="py-12">
+            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Edit Email List</h2>
+
+                        <form @submit.prevent="submit" class="space-y-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">
+                                    List Name <span class="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="name"
+                                    v-model="form.name"
+                                    type="text"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    required
+                                    autofocus
+                                />
+                                <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">
+                                    {{ form.errors.name }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700">
+                                    Description
+                                </label>
+                                <textarea
+                                    id="description"
+                                    v-model="form.description"
+                                    rows="3"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                ></textarea>
+                                <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
+                                    {{ form.errors.description }}
+                                </p>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+                                <a
+                                    :href="route('brands.lists.show', [brand.id, list.id])"
+                                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </a>
+                                <button
+                                    type="submit"
+                                    :disabled="form.processing"
+                                    class="px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50"
+                                >
+                                    {{ form.processing ? 'Updating...' : 'Update List' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>
