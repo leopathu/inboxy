@@ -58,13 +58,6 @@ const currentBrandId = computed(() => page.props.auth?.user?.current_brand_id);
                                 >
                                     Campaigns
                                 </NavLink>
-                                <NavLink
-                                    v-if="isAdmin"
-                                    :href="route('brands.index')"
-                                    :active="route().current('brands.*') && !route().current('brands.lists.*') && !route().current('brands.campaigns.*')"
-                                >
-                                    Brands
-                                </NavLink>
                             </div>
                         </div>
 
@@ -188,13 +181,6 @@ const currentBrandId = computed(() => page.props.auth?.user?.current_brand_id);
                             :active="route().current('brands.campaigns.*')"
                         >
                             Campaigns
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            v-if="isAdmin"
-                            :href="route('brands.index')"
-                            :active="route().current('brands.*') && !route().current('brands.lists.*') && !route().current('brands.campaigns.*')"
-                        >
-                            Brands
                         </ResponsiveNavLink>
                     </div>
 
