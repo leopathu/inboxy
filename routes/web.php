@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriberController;
+use App\Http\Controllers\SubscriptionFormController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -77,6 +78,9 @@ Route::middleware('auth')->group(function () {
             // Custom Fields Management
             Route::resource('custom-fields', CustomFieldController::class);
             Route::post('/custom-fields/reorder', [CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
+            
+            // Subscription Forms Management
+            Route::resource('subscription-forms', SubscriptionFormController::class)->names('subscription-forms');
         });
     });
 });
@@ -84,6 +88,14 @@ Route::middleware('auth')->group(function () {
 // Public subscription management routes (no auth required)
 Route::get('/confirm/{token}', [App\Http\Controllers\SubscriptionController::class, 'confirm'])->name('subscription.confirm');
 Route::get('/unsubscribe/{token}', [App\Http\Controllers\SubscriptionController::class, 'showUnsubscribe'])->name('subscription.unsubscribe');
+
+// Public subscription form routes
+Route::prefix('forms')->name('forms.')->group(function () {
+    Route::get('/{identifier}', [App\Http\Controllers\PublicFormController::class, 'show'])->name('show');
+    Route::post('/{identifier}', [App\Http\Controllers\PublicFormController::class, 'submit'])->name('submit');
+    Route::get('/{identifier}/embed.js', [App\Http\Controllers\PublicFormController::class, 'embedJs'])->name('embed-js');
+    Route::get('/confirm/{token}', [App\Http\Controllers\PublicFormController::class, 'confirm'])->name('confirm');
+});
 Route::post('/unsubscribe/{token}', [App\Http\Controllers\SubscriptionController::class, 'unsubscribe'])->name('subscription.do-unsubscribe');
 
 require __DIR__.'/auth.php';

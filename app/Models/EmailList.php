@@ -85,6 +85,14 @@ class EmailList extends Model
     }
 
     /**
+     * Get subscription forms for this list.
+     */
+    public function subscriptionForms(): HasMany
+    {
+        return $this->hasMany(SubscriptionForm::class, 'list_id');
+    }
+
+    /**
      * Update subscriber counts.
      */
     public function updateSubscriberCounts(): void

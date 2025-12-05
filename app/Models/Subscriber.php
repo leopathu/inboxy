@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subscriber extends Model
@@ -83,6 +84,14 @@ class Subscriber extends Model
     public function list(): BelongsTo
     {
         return $this->belongsTo(EmailList::class, 'list_id');
+    }
+
+    /**
+     * Get custom field values for this subscriber.
+     */
+    public function customFieldValues(): HasMany
+    {
+        return $this->hasMany(SubscriberCustomFieldValue::class, 'subscriber_id');
     }
 
     /**
