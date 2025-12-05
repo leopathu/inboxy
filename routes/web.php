@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApiKeyController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BrandUserController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\ProfileController;
@@ -82,6 +83,13 @@ Route::middleware('auth')->group(function () {
             // Subscription Forms Management
             Route::resource('subscription-forms', SubscriptionFormController::class)->names('subscription-forms');
         });
+        
+        // Campaign Management
+        Route::resource('campaigns', CampaignController::class);
+        Route::post('/campaigns/{campaign}/duplicate', [CampaignController::class, 'duplicate'])->name('campaigns.duplicate');
+        Route::post('/campaigns/{campaign}/pause', [CampaignController::class, 'pause'])->name('campaigns.pause');
+        Route::post('/campaigns/{campaign}/resume', [CampaignController::class, 'resume'])->name('campaigns.resume');
+        Route::post('/campaigns/{campaign}/cancel', [CampaignController::class, 'cancel'])->name('campaigns.cancel');
     });
 });
 

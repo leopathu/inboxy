@@ -15,8 +15,9 @@ return new class extends Migration
     {
         Schema::create('campaigns', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('brand_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('list_id')->constrained()->onDelete('cascade');
+            $table->foreignId('list_id')->constrained('email_lists')->onDelete('cascade');
             $table->string('name');
             $table->string('subject');
             $table->string('from_name');
@@ -46,6 +47,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             
+            $table->index('brand_id');
             $table->index('user_id');
             $table->index('list_id');
             $table->index('status');

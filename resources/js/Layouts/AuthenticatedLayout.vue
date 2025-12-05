@@ -51,9 +51,16 @@ const currentBrandId = computed(() => page.props.auth?.user?.current_brand_id);
                                     Lists
                                 </NavLink>
                                 <NavLink
+                                    v-if="currentBrandId"
+                                    :href="route('brands.campaigns.index', currentBrandId)"
+                                    :active="route().current('brands.campaigns.*')"
+                                >
+                                    Campaigns
+                                </NavLink>
+                                <NavLink
                                     v-if="isAdmin"
                                     :href="route('brands.index')"
-                                    :active="route().current('brands.*') && !route().current('brands.lists.*')"
+                                    :active="route().current('brands.*') && !route().current('brands.lists.*') && !route().current('brands.campaigns.*')"
                                 >
                                     Brands
                                 </NavLink>
@@ -174,9 +181,16 @@ const currentBrandId = computed(() => page.props.auth?.user?.current_brand_id);
                             Lists
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
+                            v-if="currentBrandId"
+                            :href="route('brands.campaigns.index', currentBrandId)"
+                            :active="route().current('brands.campaigns.*')"
+                        >
+                            Campaigns
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
                             v-if="isAdmin"
                             :href="route('brands.index')"
-                            :active="route().current('brands.*') && !route().current('brands.lists.*')"
+                            :active="route().current('brands.*') && !route().current('brands.lists.*') && !route().current('brands.campaigns.*')"
                         >
                             Brands
                         </ResponsiveNavLink>
