@@ -226,18 +226,35 @@ class BrandService
         try {
             $totalLists = $brand->lists()->count();
             $totalCampaigns = $brand->campaigns()->count();
-            $totalSubscribers = 0; // Will be implemented when subscribers table exists
+            $totalForms = $brand->subscriptionForms()->count();
+            
+            // Calculate total subscribers across all lists
+            $totalSubscribers = DB::table('subscribers')
+                ->whereIn('list_id', $brand->lists()->pluck('id'))
+                ->distinct('email')
+                ->count('email');
+                
+            // Get recent campaigns
+            $recentCampaigns = $brand->campaigns()
+                ->select('id', 'name', 'subject', 'status', 'created_at')
+                ->latest()
+                ->limit(5)
+                ->get();
         } catch (\Exception $e) {
             // Tables don't exist yet
             $totalLists = 0;
             $totalCampaigns = 0;
+            $totalForms = 0;
             $totalSubscribers = 0;
+            $recentCampaigns = [];
         }
 
         return [
             'total_lists' => $totalLists,
             'total_campaigns' => $totalCampaigns,
+            'total_forms' => $totalForms,
             'total_subscribers' => $totalSubscribers,
+            'recent_campaigns' => $recentCampaigns,
             'emails_sent_this_month' => $brand->emails_sent_this_month,
             'remaining_sends' => $brand->remaining_sends,
             'send_limit_percentage' => $brand->monthly_send_limit > 0 

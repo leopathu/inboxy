@@ -134,6 +134,14 @@ class Brand extends Model
     }
 
     /**
+     * Get the subscription forms for this brand.
+     */
+    public function subscriptionForms(): HasMany
+    {
+        return $this->hasMany(SubscriptionForm::class);
+    }
+
+    /**
      * Check if brand has reached monthly send limit.
      */
     public function hasReachedSendLimit(): bool

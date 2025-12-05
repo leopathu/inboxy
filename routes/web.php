@@ -22,10 +22,6 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -42,7 +38,8 @@ Route::middleware('auth')->group(function () {
     
     // Brand-specific routes - Require brand access
     Route::middleware('brand.access')->prefix('brands/{brand}')->name('brands.')->group(function () {
-        Route::get('/', [BrandController::class, 'show'])->name('show');
+        // Dashboard
+        Route::get('/', [BrandController::class, 'dashboard'])->name('dashboard');
         
         // Brand Users Management
         Route::get('/users', [BrandUserController::class, 'index'])->name('users.index');

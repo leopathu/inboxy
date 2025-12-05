@@ -33,7 +33,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirect to current brand dashboard or brands list
+        $user = $request->user();
+        $intended = $user->current_brand_id 
+            ? route('brands.dashboard', $user->current_brand_id, absolute: false)
+            : route('brands.user', absolute: false);
+
+        return redirect()->intended($intended);
     }
 
     /**

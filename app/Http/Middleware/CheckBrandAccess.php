@@ -39,7 +39,7 @@ class CheckBrandAccess
         } else {
             // No brand in route, try current brand
             if (!$user->current_brand_id) {
-                return redirect()->route('dashboard')
+                return redirect()->route('brands.user')
                     ->with('error', 'No brand selected. Please select a brand.');
             }
             $brandModel = Brand::find($user->current_brand_id);

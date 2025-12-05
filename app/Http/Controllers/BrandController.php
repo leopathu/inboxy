@@ -46,20 +46,16 @@ class BrandController extends Controller
             $request->user()
         );
 
-        return redirect()->route('brands.show', $brand)
+        return redirect()->route('brands.dashboard', $brand)
             ->with('success', 'Brand created successfully.');
     }
 
     /**
-     * Display the specified brand.
+     * Display the brand dashboard.
      */
-    public function show(Brand $brand): Response
+    public function dashboard(Brand $brand): Response
     {
-        $brand->load(['users' => function ($query) {
-            $query->withPivot('role');
-        }]);
-
-        return Inertia::render('Brands/Show', [
+        return Inertia::render('Dashboard', [
             'brand' => $brand,
             'statistics' => $this->brandService->getStatistics($brand),
         ]);
@@ -82,7 +78,7 @@ class BrandController extends Controller
     {
         $this->brandService->update($brand, $request->validated());
 
-        return redirect()->route('brands.show', $brand)
+        return redirect()->route('brands.dashboard', $brand)
             ->with('success', 'Brand updated successfully.');
     }
 
@@ -111,7 +107,7 @@ class BrandController extends Controller
 
         $user->switchToBrand($brand);
 
-        return redirect()->route('dashboard')
+        return redirect()->route('brands.dashboard', $brand)
             ->with('success', "Switched to {$brand->name}.");
     }
 

@@ -158,7 +158,7 @@ const getStatusColor = (brand: Brand): string => {
                     </td>
                     <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                       <Link
-                        :href="route('brands.show', brand.id)"
+                        :href="route('brands.dashboard', brand.id)"
                         class="text-indigo-600 hover:text-indigo-900 mr-3"
                       >
                         View
