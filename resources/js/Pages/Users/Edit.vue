@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import BrandLayout from '@/Layouts/BrandLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -29,7 +29,7 @@ const submit = () => {
 <template>
     <Head :title="`Edit User - ${user.name}`" />
 
-    <AuthenticatedLayout>
+    <BrandLayout :brand="brand">
         <div>
             <div class="mb-6">
                 <div class="flex items-center text-sm text-gray-500 mb-2">
@@ -178,7 +178,7 @@ const submit = () => {
                             </div>
                         </form>
                     </div>
-                </div>
             </div>
-    </AuthenticatedLayout>
+        </div>
+    </BrandLayout>
 </template>

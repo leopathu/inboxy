@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import BrandLayout from '@/Layouts/BrandLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -18,7 +18,7 @@ const deleteUser = (user) => {
 <template>
     <Head :title="`${brand.name} - Users`" />
 
-    <AuthenticatedLayout>
+    <BrandLayout :brand="brand">
         <div>
             <div class="mb-6">
                 <div class="flex items-center text-sm text-gray-500 mb-2">
@@ -127,5 +127,5 @@ const deleteUser = (user) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </BrandLayout>
 </template>

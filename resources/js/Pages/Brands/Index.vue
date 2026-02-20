@@ -73,8 +73,13 @@ const deleteBrand = (id) => {
                                     </svg>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                {{ brand.name }}
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                                <Link 
+                                    :href="route('brands.dashboard', brand.id)" 
+                                    class="text-indigo-600 hover:text-indigo-900 font-medium"
+                                >
+                                    {{ brand.name }}
+                                </Link>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                 {{ brand.from_name }}
