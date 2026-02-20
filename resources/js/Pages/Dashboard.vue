@@ -7,7 +7,7 @@ import { Head } from '@inertiajs/vue3';
     <Head title="Dashboard" />
 
     <AuthenticatedLayout>
-        <div class="max-w-7xl mx-auto">
+        <div>
             <div class="mb-6">
                 <h2 class="text-2xl font-semibold text-gray-900">
                     Dashboard
