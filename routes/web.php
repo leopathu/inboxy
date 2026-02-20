@@ -5,6 +5,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BrandDashboardController;
+use App\Http\Controllers\ListController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,6 +27,9 @@ Route::middleware('auth')->group(function () {
     
     // User management routes within brand context
     Route::resource('brands.users', UserController::class)->except(['show']);
+    
+    // List management routes within brand context
+    Route::resource('brands.lists', ListController::class)->except(['show', 'create']);
     
     // Select brand route
     Route::post('/select-brand/{brand}', function ($brandId) {
