@@ -62,13 +62,11 @@ const form = useForm({
     test_email_subject_prefix: props.brand.test_email_subject_prefix || '[TEST]',
     allowed_attachment_types: props.brand.allowed_attachment_types || [],
     default_optin_method: props.brand.default_optin_method,
+    _method: 'PUT',
 });
 
 const submit = () => {
-    form.post(route('brands.update', props.brand.id), {
-        forceFormData: true,
-        _method: 'put',
-    });
+    form.post(route('brands.update', props.brand.id));
 };
 
 const attachmentTypes = [
