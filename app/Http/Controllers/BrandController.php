@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class BrandController extends Controller
@@ -47,7 +48,7 @@ class BrandController extends Controller
             'from_name' => 'required|string|max:255',
             'from_email' => 'required|email|max:255',
             'reply_to_email' => 'required|email|max:255',
-            'brand_logo' => 'nullable|string',
+            'brand_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'smtp_host' => 'nullable|string|max:255',
             'smtp_port' => 'nullable|integer',
             'smtp_username' => 'nullable|string|max:255',
@@ -67,6 +68,13 @@ class BrandController extends Controller
             'allowed_attachment_types' => 'nullable|array',
             'default_optin_method' => 'required|string|in:single,double',
         ]);
+
+        // Handle file upload
+        if ($request->hasFile('brand_logo')) {
+            $validated['brand_logo'] = $request->file('brand_logo')->store('brand-logos', 'public');
+        } else {
+            unset($validated['brand_logo']);
+        }
 
         $validated['user_id'] = auth()->id();
 
@@ -107,7 +115,7 @@ class BrandController extends Controller
             'from_name' => 'required|string|max:255',
             'from_email' => 'required|email|max:255',
             'reply_to_email' => 'required|email|max:255',
-            'brand_logo' => 'nullable|string',
+            'brand_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'smtp_host' => 'nullable|string|max:255',
             'smtp_port' => 'nullable|integer',
             'smtp_username' => 'nullable|string|max:255',
@@ -127,6 +135,17 @@ class BrandController extends Controller
             'allowed_attachment_types' => 'nullable|array',
             'default_optin_method' => 'required|string|in:single,double',
         ]);
+
+        // Handle file upload
+        if ($request->hasFile('brand_logo')) {
+            // Delete old logo if exists
+            if ($brand->brand_logo && Storage::disk('public')->exists($brand->brand_logo)) {
+                Storage::disk('public')->delete($brand->brand_logo);
+            }
+            $validated['brand_logo'] = $request->file('brand_logo')->store('brand-logos', 'public');
+        } else {
+            unset($validated['brand_logo']);
+        }
 
         $brand->update($validated);
 

@@ -11,8 +11,27 @@ const expandedSections = ref({
     other: false,
 });
 
+const logoPreview = ref(null);
+
 const toggleSection = (section) => {
     expandedSections.value[section] = !expandedSections.value[section];
+};
+
+const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        form.brand_logo = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            logoPreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const removeLogo = () => {
+    form.brand_logo = null;
+    logoPreview.value = null;
 };
 
 const form = useForm({
@@ -20,7 +39,7 @@ const form = useForm({
     from_name: '',
     from_email: '',
     reply_to_email: '',
-    brand_logo: '',
+    brand_logo: null,
     smtp_host: '',
     smtp_port: 587,
     smtp_username: '',
@@ -78,75 +97,120 @@ const toggleAttachmentType = (type) => {
         </div>
 
         <form @submit.prevent="submit" class="space-y-6">
-            <!-- Basic Information -->
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <div class="border-b border-gray-200 bg-white px-6 py-4">
-                    <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
-                </div>
-                <div class="px-6 py-4 space-y-4">
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">Brand Name *</label>
-                            <input
-                                type="text"
-                                id="name"
-                                v-model="form.name"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                required
-                            />
-                            <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</div>
+            <!-- Two Column Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Basic Information -->
+                    <div class="bg-white shadow-sm sm:rounded-lg">
+                        <div class="border-b border-gray-200 bg-white px-6 py-4">
+                            <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
                         </div>
+                        <div class="px-6 py-4 space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Brand Name *</label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    v-model="form.name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    required
+                                />
+                                <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</div>
+                            </div>
 
-                        <div>
-                            <label for="from_name" class="block text-sm font-medium text-gray-700">From Name *</label>
-                            <input
-                                type="text"
-                                id="from_name"
-                                v-model="form.from_name"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                required
-                            />
-                            <div v-if="form.errors.from_name" class="mt-1 text-sm text-red-600">{{ form.errors.from_name }}</div>
+                            <div>
+                                <label for="from_name" class="block text-sm font-medium text-gray-700">From Name *</label>
+                                <input
+                                    type="text"
+                                    id="from_name"
+                                    v-model="form.from_name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    required
+                                />
+                                <div v-if="form.errors.from_name" class="mt-1 text-sm text-red-600">{{ form.errors.from_name }}</div>
+                            </div>
+
+                            <div>
+                                <label for="from_email" class="block text-sm font-medium text-gray-700">From Email *</label>
+                                <input
+                                    type="email"
+                                    id="from_email"
+                                    v-model="form.from_email"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    required
+                                />
+                                <div v-if="form.errors.from_email" class="mt-1 text-sm text-red-600">{{ form.errors.from_email }}</div>
+                            </div>
+
+                            <div>
+                                <label for="reply_to_email" class="block text-sm font-medium text-gray-700">Reply to Email *</label>
+                                <input
+                                    type="email"
+                                    id="reply_to_email"
+                                    v-model="form.reply_to_email"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    required
+                                />
+                                <div v-if="form.errors.reply_to_email" class="mt-1 text-sm text-red-600">{{ form.errors.reply_to_email }}</div>
+                            </div>
+
+                            <div>
+                                <label for="brand_logo" class="block text-sm font-medium text-gray-700">Brand Logo</label>
+                                <div class="mt-1 flex items-center gap-4">
+                                    <div v-if="logoPreview" class="relative">
+                                        <img :src="logoPreview" alt="Logo preview" class="h-24 w-24 object-contain rounded border border-gray-300" />
+                                        <button
+                                            type="button"
+                                            @click="removeLogo"
+                                            class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                                        >
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input
+                                            type="file"
+                                            id="brand_logo"
+                                            @change="handleLogoUpload"
+                                            accept="image/*"
+                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        />
+                                        <p class="mt-1 text-xs text-gray-500">PNG, JPG, GIF, SVG up to 2MB</p>
+                                    </div>
+                                </div>
+                                <div v-if="form.errors.brand_logo" class="mt-1 text-sm text-red-600">{{ form.errors.brand_logo }}</div>
+                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <label for="from_email" class="block text-sm font-medium text-gray-700">From Email *</label>
-                            <input
-                                type="email"
-                                id="from_email"
-                                v-model="form.from_email"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                required
-                            />
-                            <div v-if="form.errors.from_email" class="mt-1 text-sm text-red-600">{{ form.errors.from_email }}</div>
-                        </div>
-
-                        <div>
-                            <label for="reply_to_email" class="block text-sm font-medium text-gray-700">Reply to Email *</label>
-                            <input
-                                type="email"
-                                id="reply_to_email"
-                                v-model="form.reply_to_email"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                required
-                            />
-                            <div v-if="form.errors.reply_to_email" class="mt-1 text-sm text-red-600">{{ form.errors.reply_to_email }}</div>
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <label for="brand_logo" class="block text-sm font-medium text-gray-700">Brand Logo URL</label>
-                            <input
-                                type="text"
-                                id="brand_logo"
-                                v-model="form.brand_logo"
-                                placeholder="https://example.com/logo.png"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                            <div v-if="form.errors.brand_logo" class="mt-1 text-sm text-red-600">{{ form.errors.brand_logo }}</div>
+                    <!-- Form Actions -->
+                    <div class="bg-white shadow-sm sm:rounded-lg">
+                        <div class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-4">
+                                <Link
+                                    :href="route('brands.index')"
+                                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                >
+                                    Cancel
+                                </Link>
+                                <button
+                                    type="submit"
+                                    :disabled="form.processing"
+                                    class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                                >
+                                    <span v-if="form.processing">Creating...</span>
+                                    <span v-else>Create Brand</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
 
             <!-- SMTP Settings - Collapsible -->
             <div class="bg-white shadow-sm sm:rounded-lg">
@@ -497,23 +561,7 @@ const toggleAttachmentType = (type) => {
                     </div>
                 </div>
             </div>
-
-            <!-- Form Actions -->
-            <div class="flex items-center justify-end gap-4">
-                <Link
-                    :href="route('brands.index')"
-                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Cancel
-                </Link>
-                <button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-                >
-                    <span v-if="form.processing">Creating...</span>
-                    <span v-else>Create Brand</span>
-                </button>
+                </div>
             </div>
         </form>
     </AuthenticatedLayout>
