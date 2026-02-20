@@ -18,9 +18,9 @@ const deleteUser = (user) => {
     <Head title="Manage Users" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-900">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6 flex items-center justify-between">
+                <h2 class="text-2xl font-semibold text-gray-900">
                     Manage Users
                 </h2>
                 <Link
@@ -30,9 +30,7 @@ const deleteUser = (user) => {
                     Create User
                 </Link>
             </div>
-        </template>
 
-        <div class="max-w-7xl mx-auto">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="overflow-x-auto">

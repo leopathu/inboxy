@@ -109,11 +109,6 @@ const sidebarOpen = ref(false);
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
-
-                <!-- Page title from header slot -->
-                <div class="flex-1" v-if="$slots.header">
-                    <slot name="header" />
-                </div>
             </div>
 
             <!-- Page content -->

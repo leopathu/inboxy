@@ -24,9 +24,9 @@ const submit = () => {
     <Head title="Create User" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-900">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6 flex items-center justify-between">
+                <h2 class="text-2xl font-semibold text-gray-900">
                     Create New User
                 </h2>
                 <Link
@@ -36,9 +36,7 @@ const submit = () => {
                     Back to Users
                 </Link>
             </div>
-        </template>
 
-        <div class="max-w-7xl mx-auto">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <form @submit.prevent="submit" class="space-y-6">
