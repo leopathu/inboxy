@@ -38,16 +38,16 @@ const submit = () => {
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <form @submit.prevent="submit" class="space-y-6">
-                            <div>
-                                <InputLabel for="name" value="Name" />
-                                <TextInput
-                                    id="name"
-                                    v-model="form.name"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    required
+                <div class="p-6 text-gray-900">
+                    <form @submit.prevent="submit" class="space-y-6">
+                        <div>
+                            <InputLabel for="name" value="Name" />
+                            <TextInput
+                                id="name"
+                                v-model="form.name"
+                                type="text"
+                                class="mt-1 block w-full"
+                                required
                                     autofocus
                                     autocomplete="name"
                                 />
@@ -119,6 +119,5 @@ const submit = () => {
                     </div>
                 </div>
             </div>
-        </div>
     </AuthenticatedLayout>
 </template>
