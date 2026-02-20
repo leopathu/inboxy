@@ -6,35 +6,58 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+const props = defineProps({
+    brand: Object,
+});
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
+    brand_role: 'user',
 });
 
 const submit = () => {
-    form.post(route('users.store'), {
+    form.post(route('brands.users.store', props.brand.id), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
 </script>
 
 <template>
-    <Head title="Create User" />
+    <Head :title="`Add User to ${brand.name}`" />
 
     <AuthenticatedLayout>
         <div>
-            <div class="mb-6 flex items-center justify-between">
-                <h2 class="text-2xl font-semibold text-gray-900">
-                    Create New User
-                </h2>
-                <Link
-                    :href="route('users.index')"
-                    class="text-sm text-gray-600 hover:text-gray-900"
-                >
-                    Back to Users
-                </Link>
+            <div class="mb-6">
+                <div class="flex items-center text-sm text-gray-500 mb-2">
+                    <Link :href="route('brands.index')" class="hover:text-gray-700">
+                        Brands
+                    </Link>
+                    <svg class="mx-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <Link :href="route('brands.users.index', brand.id)" class="hover:text-gray-700">
+                        {{ brand.name }} - Users
+                    </Link>
+                    <svg class="mx-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="font-medium text-gray-900">Add User</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-semibold text-gray-900">
+                        Add User to {{ brand.name }}
+                    </h2>
+                    <Link
+                        :href="route('brands.users.index', brand.id)"
+                        class="text-sm text-gray-600 hover:text-gray-900"
+                    >
+                        Back to Users
+                    </Link>
+                </div>
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -93,9 +116,26 @@ const submit = () => {
                                 <InputError class="mt-2" :message="form.errors.password_confirmation" />
                             </div>
 
+                            <div>
+                                <InputLabel for="brand_role" value="Brand Role" />
+                                <select
+                                    id="brand_role"
+                                    v-model="form.brand_role"
+                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                    required
+                                >
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Brand admins can manage users within this brand.
+                                </p>
+                                <InputError class="mt-2" :message="form.errors.brand_role" />
+                            </div>
+
                             <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
                                 <p class="text-sm text-blue-800">
-                                    <strong>Note:</strong> This user will be created with the "single" role.
+                                    <strong>Note:</strong> This user will be added to the "{{ brand.name }}" brand.
                                 </p>
                             </div>
 

@@ -17,11 +17,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // User management routes (admin only)
-    Route::resource('users', UserController::class);
-
     // Brand management routes (admin only)
     Route::resource('brands', BrandController::class);
+    
+    // User management routes within brand context
+    Route::resource('brands.users', UserController::class)->except(['show']);
     
     // Select brand route
     Route::post('/select-brand/{brand}', function ($brandId) {

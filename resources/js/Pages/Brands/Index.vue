@@ -95,10 +95,16 @@ const deleteBrand = (id) => {
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                 {{ brand.user?.name }}
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium space-x-3">
+                                <Link
+                                    :href="route('brands.users.index', brand.id)"
+                                    class="text-blue-600 hover:text-blue-900"
+                                >
+                                    Users
+                                </Link>
                                 <Link
                                     :href="route('brands.edit', brand.id)"
-                                    class="text-indigo-600 hover:text-indigo-900 mr-4"
+                                    class="text-indigo-600 hover:text-indigo-900"
                                 >
                                     Edit
                                 </Link>

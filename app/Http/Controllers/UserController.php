@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -16,33 +17,45 @@ class UserController extends Controller
     use AuthorizesRequests;
 
     /**
-     * Display a listing of users.
+     * Display a listing of users for a brand.
      */
-    public function index(): Response
+    public function index(Brand $brand): Response
     {
         $this->authorize('viewAny', User::class);
 
+        // Admin can see all users, single users can only see their brand's users
+        if (auth()->user()->isAdmin()) {
+            $users = $brand->users()->get();
+        } else {
+            // Check if user belongs to this brand
+            if (!auth()->user()->brands->contains($brand->id)) {
+                abort(403, 'You do not have access to this brand.');
+            }
+            $users = $brand->users()->get();
+        }
+
         return Inertia::render('Users/Index', [
-            'users' => User::select('id', 'name', 'email', 'role', 'created_at')
-                ->orderBy('created_at', 'desc')
-                ->get(),
+            'users' => $users,
+            'brand' => $brand->only('id', 'name'),
         ]);
     }
 
     /**
      * Show the form for creating a new user.
      */
-    public function create(): Response
+    public function create(Brand $brand): Response
     {
         $this->authorize('create', User::class);
 
-        return Inertia::render('Users/Create');
+        return Inertia::render('Users/Create', [
+            'brand' => $brand->only('id', 'name'),
+        ]);
     }
 
     /**
      * Store a newly created user in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, Brand $brand): RedirectResponse
     {
         $this->authorize('create', User::class);
 
@@ -50,34 +63,42 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'brand_role' => 'required|in:admin,user',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'single',
         ]);
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+        // Attach user to brand with role
+        $brand->users()->attach($user->id, ['role' => $request->brand_role]);
+
+        return redirect()->route('brands.users.index', $brand)->with('success', 'User created successfully.');
     }
 
     /**
      * Show the form for editing the specified user.
      */
-    public function edit(User $user): Response
+    public function edit(Brand $brand, User $user): Response
     {
         $this->authorize('update', $user);
 
+        // Get user's role in this brand
+        $brandRole = $brand->users()->where('user_id', $user->id)->first()?->pivot->role ?? 'user';
+
         return Inertia::render('Users/Edit', [
-            'user' => $user->only('id', 'name', 'email', 'role'),
+            'user' => array_merge($user->only('id', 'name', 'email', 'role'), ['brand_role' => $brandRole]),
+            'brand' => $brand->only('id', 'name'),
         ]);
     }
 
     /**
      * Update the specified user in storage.
      */
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, Brand $brand, User $user): RedirectResponse
     {
         $this->authorize('update', $user);
 
@@ -85,6 +106,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:users,email,'.$user->id,
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'brand_role' => 'required|in:admin,user',
         ]);
 
         $user->update([
@@ -93,18 +115,27 @@ class UserController extends Controller
             'password' => $request->password ? Hash::make($request->password) : $user->password,
         ]);
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        // Update brand role
+        $brand->users()->updateExistingPivot($user->id, ['role' => $request->brand_role]);
+
+        return redirect()->route('brands.users.index', $brand)->with('success', 'User updated successfully.');
     }
 
     /**
      * Remove the specified user from storage.
      */
-    public function destroy(User $user): RedirectResponse
+    public function destroy(Brand $brand, User $user): RedirectResponse
     {
         $this->authorize('delete', $user);
 
-        $user->delete();
+        // Detach user from brand instead of deleting
+        $brand->users()->detach($user->id);
 
-        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+        // Only delete user if they don't belong to any other brand
+        if ($user->brands()->count() === 0) {
+            $user->delete();
+        }
+
+        return redirect()->route('brands.users.index', $brand)->with('success', 'User removed from brand successfully.');
     }
 }

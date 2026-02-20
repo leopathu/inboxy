@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -70,5 +71,13 @@ class User extends Authenticatable
     public function setting(): HasOne
     {
         return $this->hasOne(Setting::class);
+    }
+
+    /**
+     * Get the brands that the user belongs to.
+     */
+    public function brands(): BelongsToMany
+    {
+        return $this->belongsToMany(Brand::class)->withPivot('role')->withTimestamps();
     }
 }
