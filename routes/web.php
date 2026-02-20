@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BrandController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,6 +19,9 @@ Route::middleware('auth')->group(function () {
 
     // User management routes (admin only)
     Route::resource('users', UserController::class);
+
+    // Brand management routes (admin only)
+    Route::resource('brands', BrandController::class);
 
     // Settings routes (admin only)
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
