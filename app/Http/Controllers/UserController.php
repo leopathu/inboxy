@@ -36,7 +36,7 @@ class UserController extends Controller
 
         return Inertia::render('Users/Index', [
             'users' => $users,
-            'brand' => $brand->only('id', 'name'),
+            'brand' => $brand->only('id', 'name', 'brand_logo', 'from_name', 'from_email'),
         ]);
     }
 
@@ -48,7 +48,7 @@ class UserController extends Controller
         $this->authorize('create', User::class);
 
         return Inertia::render('Users/Create', [
-            'brand' => $brand->only('id', 'name'),
+            'brand' => $brand->only('id', 'name', 'brand_logo', 'from_name', 'from_email'),
         ]);
     }
 
@@ -91,7 +91,7 @@ class UserController extends Controller
 
         return Inertia::render('Users/Edit', [
             'user' => array_merge($user->only('id', 'name', 'email', 'role'), ['brand_role' => $brandRole]),
-            'brand' => $brand->only('id', 'name'),
+            'brand' => $brand->only('id', 'name', 'brand_logo', 'from_name', 'from_email'),
         ]);
     }
 

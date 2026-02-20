@@ -21,20 +21,15 @@ const deleteUser = (user) => {
     <BrandLayout :brand="brand">
         <div>
             <div class="mb-6">
-                <div class="flex items-center text-sm text-gray-500 mb-2">
-                    <Link :href="route('brands.index')" class="hover:text-gray-700">
-                        Brands
-                    </Link>
-                    <svg class="mx-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="font-medium text-gray-900">{{ brand.name }}</span>
-                </div>
-                
                 <div class="flex items-center justify-between">
-                    <h2 class="text-2xl font-semibold text-gray-900">
-                        Manage Users - {{ brand.name }}
-                    </h2>
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-900">
+                            Users
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-600">
+                            Manage users for this brand
+                        </p>
+                    </div>
                     <Link
                         :href="route('brands.users.create', brand.id)"
                         class="inline-flex items-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900"
