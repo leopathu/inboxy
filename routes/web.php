@@ -22,6 +22,12 @@ Route::middleware('auth')->group(function () {
 
     // Brand management routes (admin only)
     Route::resource('brands', BrandController::class);
+    
+    // Select brand route
+    Route::post('/select-brand/{brand}', function ($brandId) {
+        session(['selected_brand_id' => $brandId]);
+        return back();
+    })->name('select-brand');
 
     // Settings routes (admin only)
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');

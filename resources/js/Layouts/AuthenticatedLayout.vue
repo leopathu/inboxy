@@ -1,9 +1,34 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 
 const sidebarOpen = ref(false);
+const brandDropdownOpen = ref(false);
+const brandDropdownRef = ref(null);
+
+const selectBrand = (brandId) => {
+    router.post(route('select-brand', brandId), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            brandDropdownOpen.value = false;
+        }
+    });
+};
+
+const handleClickOutside = (event) => {
+    if (brandDropdownRef.value && !brandDropdownRef.value.contains(event.target)) {
+        brandDropdownOpen.value = false;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
@@ -142,6 +167,68 @@ const sidebarOpen = ref(false);
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
+
+                <!-- Brand Selector -->
+                <div v-if="$page.props.brands && $page.props.brands.length > 0" ref="brandDropdownRef" class="relative ml-auto">
+                    <button
+                        type="button"
+                        @click="brandDropdownOpen = !brandDropdownOpen"
+                        class="flex items-center gap-x-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    >
+                        <img 
+                            v-if="$page.props.selectedBrand?.logo" 
+                            :src="`/storage/${$page.props.selectedBrand.logo}`" 
+                            alt="Brand logo" 
+                            class="h-8 w-8 object-contain rounded"
+                        />
+                        <div v-else class="h-8 w-8 bg-gray-200 rounded flex items-center justify-center">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                        </div>
+                        <span class="hidden sm:block">{{ $page.props.selectedBrand?.name || 'Select Brand' }}</span>
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div
+                        v-show="brandDropdownOpen"
+                        class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    >
+                        <button
+                            v-for="brand in $page.props.brands"
+                            :key="brand.id"
+                            @click="selectBrand(brand.id)"
+                            :class="[
+                                'flex items-center w-full gap-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors',
+                                $page.props.selectedBrand?.id === brand.id ? 'bg-gray-50' : ''
+                            ]"
+                        >
+                            <img 
+                                v-if="brand.logo" 
+                                :src="`/storage/${brand.logo}`" 
+                                alt="Brand logo" 
+                                class="h-10 w-10 object-contain rounded border border-gray-200"
+                            />
+                            <div v-else class="h-10 w-10 bg-gray-200 rounded flex items-center justify-center border border-gray-200">
+                                <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 text-left">
+                                <div class="font-medium text-gray-900">{{ brand.name }}</div>
+                                <div v-if="$page.props.selectedBrand?.id === brand.id" class="text-xs text-indigo-600 mt-0.5">
+                                    <svg class="inline h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Selected
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Page content -->
